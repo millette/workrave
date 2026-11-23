@@ -160,6 +160,16 @@ Triggers the same actions as the Workrave menu.
 | `Quit` | | Quit Workrave. |
 | `About` | | Open the about dialog. |
 
+> **Note:** Workrave 1.11.0 to 1.11.5 do not export this interface, and every
+> call to it fails with `UnknownMethod`. On those versions, use
+> `AppletInterface.MenuAction` with an action id from `GetMenu`, such as
+> `workrave.restbreak`; it only works while the generic D-Bus applet is
+> active. See [Known issues](#known-issues).
+
+Introspection also lists `SetOperationMode` with an `s` argument. It is not
+implemented and replies with the error `org.workrave.NotImplemented`; use
+`CoreInterface.SetOperationMode` instead.
+
 ## `org.workrave.AppletInterface`
 
 Object path: `/org/workrave/Workrave/UI`
@@ -299,7 +309,7 @@ gdbus call --session --dest org.workrave.Workrave \
   --object-path /org/workrave/Workrave/Core \
   --method org.workrave.CoreInterface.GetTimerRemaining microbreak
 
-# Start a rest break now
+# Start a rest break now (fails on 1.11.0 to 1.11.5, see Known issues)
 gdbus call --session --dest org.workrave.Workrave \
   --object-path /org/workrave/Workrave/UI \
   --method org.workrave.ControlInterface.RestBreak
@@ -347,6 +357,19 @@ core implementations, and the D-Bus clients in this repository. None of them
 is fixed in 1.11.5.
 
 ### In the interface
+
+- **`ControlInterface` is not exported (1.11.0 to 1.11.5).** At start-up,
+  `Application::init_dbus()` connected the interface before its binding was
+  registered and before the menus it dispatches to existed. The connect
+  failed, and the error was ignored. Fixed after 1.11.5: the interface is now
+  connected once the menus exist, and a failure is logged. The workaround for
+  older versions is `AppletInterface.MenuAction`
+  (`ui/app/Application.cc`).
+- **`ControlInterface.SetOperationMode` is advertised but not implemented.**
+  `workrave-gui.xml` marks it `condition="defined(NOT_YET)"`. The code
+  generator still lists it in the introspection data, and the compiled stub
+  replies `org.workrave.NotImplemented` (`ui/app/workrave-gui.xml:45`,
+  `libs/dbus/data/gio-cc.jinja`).
 
 - **`GetString` reply order.** `GetString` replies `(found, value)`; `GetInt`,
   `GetBool` and `GetDouble` reply `(value, found)`
