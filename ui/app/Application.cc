@@ -104,14 +104,13 @@ Application::main()
   init_nls();
   init_sound_player();
   init_exercises();
-  init_dbus();
 
   preferences_registry = std::make_shared<PreferencesRegistry>();
   context->set_preferences_registry(preferences_registry);
   menu_model = std::make_shared<MenuModel>();
   context->set_menu_model(menu_model);
   menus = std::make_shared<Menus>(context);
-  init_dbus_control();
+  init_dbus();
 
   init_platform_pre();
 
@@ -310,16 +309,8 @@ Application::init_dbus()
     {
     }
 #endif
-}
 
-// Exports org.workrave.ControlInterface. Must run after init_dbus(), which
-// registers the interface binding, and after the menus object is created.
-void
-Application::init_dbus_control()
-{
-#if defined(HAVE_DBUS)
-  auto dbus = get_core()->get_dbus();
-
+  // After init_DBusGUI(), which registers the interface binding.
   if (dbus->is_available())
     {
       try
@@ -331,7 +322,6 @@ Application::init_dbus_control()
           spdlog::warn("Cannot export org.workrave.ControlInterface: {}", e.details());
         }
     }
-#endif
 }
 
 void
