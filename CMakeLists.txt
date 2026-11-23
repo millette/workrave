@@ -763,11 +763,10 @@ if (UNIX AND NOT APPLE)
         set (HAVE_STATUSICON ON)
         endif()
     endif()
-  endif()
-
-  # Without AppIndicator, use the XEmbed tray icon (i3bar and other system
-  # trays), also when AppIndicator is disabled or dbusmenu is missing.
-  if (NOT HAVE_APPINDICATOR)
+  else()
+    set (WITH_APPINDICATOR OFF)
+    set (HAVE_APPINDICATOR OFF)
+    set (HAVE_APPINDICATOR_AYATANA OFF)
     set (HAVE_STATUSICON ON)
   endif()
 endif()
