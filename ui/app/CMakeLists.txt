@@ -291,4 +291,11 @@ endif()
 
 install(TARGETS workrave RUNTIME DESTINATION ${BINDIR} BUNDLE DESTINATION .)
 
+if (HAVE_TESTS AND HAVE_DBUS AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  add_test(NAME workrave-control-interface-test
+           COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test/control-interface-test.sh $<TARGET_FILE:workrave>)
+  # 77: dbus-run-session, xvfb-run or gdbus is not installed.
+  set_tests_properties(workrave-control-interface-test PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 120)
+endif()
+
 add_subdirectory(toolkits)
