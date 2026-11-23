@@ -111,6 +111,7 @@ Application::main()
   menu_model = std::make_shared<MenuModel>();
   context->set_menu_model(menu_model);
   menus = std::make_shared<Menus>(context);
+  init_dbus_control();
 
   init_platform_pre();
 
@@ -293,7 +294,6 @@ Application::init_dbus()
       try
         {
           dbus->register_object_path("/org/workrave/Workrave/UI");
-          dbus->connect("/org/workrave/Workrave/UI", "org.workrave.ControlInterface", menus.get());
         }
       catch (workrave::dbus::DBusException &)
         {
@@ -308,6 +308,28 @@ Application::init_dbus()
     }
   catch (workrave::dbus::DBusException &)
     {
+    }
+#endif
+}
+
+// Exports org.workrave.ControlInterface. Must run after init_dbus(), which
+// registers the interface binding, and after the menus object is created.
+void
+Application::init_dbus_control()
+{
+#if defined(HAVE_DBUS)
+  auto dbus = get_core()->get_dbus();
+
+  if (dbus->is_available())
+    {
+      try
+        {
+          dbus->connect("/org/workrave/Workrave/UI", "org.workrave.ControlInterface", menus.get());
+        }
+      catch (workrave::dbus::DBusException &e)
+        {
+          spdlog::warn("Cannot export org.workrave.ControlInterface: {}", e.details());
+        }
     }
 #endif
 }

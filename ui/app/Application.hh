@@ -90,6 +90,7 @@ private:
   void init_sound_player();
   void init_exercises();
   void init_dbus();
+  void init_dbus_control();
   void init_operation_mode_warning();
 
   void on_status_icon_activate();
