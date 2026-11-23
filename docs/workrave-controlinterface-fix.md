@@ -361,8 +361,10 @@ icon in `i3bar`.
 
 **Still not done:**
 
-- Not packaged or installed system-wide: `/usr/bin/workrave` is still the
-  unpatched `1.11.5-0local1`
+- ~~Not packaged or installed~~ Done at 13:25: `~/git/workrave_1.11.5-0local2_amd64.deb`
+  (built from `8fbf2944a`, same layout and dependencies as `0local1`) is
+  installed, and the running Workrave was restarted on it. `ControlInterface`
+  is exported and the tray icon shows in `i3bar`
 - Qt build not tested (see above)
 - No GNOME/Cinnamon/MATE panel applet test: this machine runs i3
 - Release notes not written
