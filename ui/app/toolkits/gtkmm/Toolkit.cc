@@ -29,6 +29,7 @@
 #include "MicroBreakWindow.hh"
 #include "PreludeWindow.hh"
 #include "RestBreakWindow.hh"
+#include "commonui/buildinfo.h"
 #include "commonui/credits.h"
 #include "commonui/nls.h"
 #include "debug.hh"
@@ -297,11 +298,12 @@ Toolkit::show_about()
       about_dialog->set_logo(pixbuf);
       about_dialog->set_translator_credits(workrave_translators);
 
+      std::string version = std::string(WORKRAVE_VERSION) + " · " + workrave_build_datetime;
 #if defined(WORKRAVE_GIT_VERSION)
-      about_dialog->set_version(WORKRAVE_VERSION "\n(" WORKRAVE_GIT_VERSION ")");
-#else
-      about_dialog->set_version(WORKRAVE_VERSION);
+      version += "\n(" WORKRAVE_GIT_VERSION ")";
 #endif
+      version += std::string("\n") + workrave_build_branch + " " + workrave_build_commit;
+      about_dialog->set_version(version);
       about_dialog->set_website("https://www.workrave.org/");
       about_dialog->set_website_label("www.workrave.org");
 

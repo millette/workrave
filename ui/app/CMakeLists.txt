@@ -163,6 +163,22 @@ target_link_libraries(workrave
   workrave-libs-utils
   workrave-libs-ui-prefwidgets)
 
+# Build date, branch and commit for the About dialog. Recorded at every build,
+# not at configure time; only BuildInfo.cc is recompiled.
+add_custom_target(workrave-build-info
+  COMMAND ${CMAKE_COMMAND}
+          -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+          -DOUTPUT=${CMAKE_CURRENT_BINARY_DIR}/BuildInfoData.h
+          -DGIT_EXECUTABLE=${GIT_EXECUTABLE}
+          -P ${CMAKE_SOURCE_DIR}/cmake/modules/BuildInfo.cmake
+  BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/BuildInfoData.h
+  VERBATIM)
+add_dependencies(workrave workrave-build-info)
+target_sources(workrave PRIVATE BuildInfo.cc)
+target_include_directories(workrave PRIVATE
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/../libs/commonui/include)
+
 if (HAVE_CRASH_REPORT)
   target_link_libraries(workrave PRIVATE workrave-libs-crash)
 endif()
@@ -296,6 +312,13 @@ if (HAVE_TESTS AND HAVE_DBUS AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
            COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test/control-interface-test.sh $<TARGET_FILE:workrave>)
   # 77: dbus-run-session, xvfb-run or gdbus is not installed.
   set_tests_properties(workrave-control-interface-test PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 120)
+endif()
+
+if (HAVE_TESTS AND UNIX)
+  add_test(NAME workrave-build-info-test
+           COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test/build-info-test.sh $<TARGET_FILE:workrave> ${CMAKE_SOURCE_DIR})
+  # 77: git or strings is not installed, or the source is not a git tree.
+  set_tests_properties(workrave-build-info-test PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 60)
 endif()
 
 add_subdirectory(toolkits)
