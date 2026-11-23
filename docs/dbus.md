@@ -166,9 +166,9 @@ Triggers the same actions as the Workrave menu.
 > `workrave.restbreak`; it only works while the generic D-Bus applet is
 > active. See [Known issues](#known-issues).
 
-Introspection also lists `SetOperationMode` with an `s` argument. It is not
-implemented and replies with the error `org.workrave.NotImplemented`; use
-`CoreInterface.SetOperationMode` instead.
+Up to 1.11.5, introspection also lists `SetOperationMode` with an `s`
+argument. It is not implemented and replies with the error
+`org.workrave.NotImplemented`; use `CoreInterface.SetOperationMode` instead.
 
 ## `org.workrave.AppletInterface`
 
@@ -367,9 +367,10 @@ is fixed in 1.11.5.
   (`ui/app/Application.cc`).
 - **`ControlInterface.SetOperationMode` is advertised but not implemented.**
   `workrave-gui.xml` marks it `condition="defined(NOT_YET)"`. The code
-  generator still lists it in the introspection data, and the compiled stub
+  generator still listed it in the introspection data, and the compiled stub
   replies `org.workrave.NotImplemented` (`ui/app/workrave-gui.xml:45`,
-  `libs/dbus/data/gio-cc.jinja`).
+  `libs/dbus/data/gio-cc.jinja`). Fixed after 1.11.5: the generator leaves a
+  method whose condition is false out of the introspection data.
 
 - **`GetString` reply order.** `GetString` replies `(found, value)`; `GetInt`,
   `GetBool` and `GetDouble` reply `(value, found)`

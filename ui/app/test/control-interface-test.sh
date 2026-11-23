@@ -114,6 +114,12 @@ case $(introspect_ui) in
 esac
 echo "ok: ControlInterface exported"
 
+# Methods compiled out by their condition must not be advertised.
+case $(introspect_ui) in
+  *" SetOperationMode("*) fail "introspection lists SetOperationMode, which is not compiled in" ;;
+esac
+echo "ok: SetOperationMode not advertised"
+
 call "$ui" org.workrave.ControlInterface.ReadingMode true >/dev/null ||
   fail "ControlInterface.ReadingMode failed"
 mode=$(call "$core" org.workrave.CoreInterface.GetUsageMode)

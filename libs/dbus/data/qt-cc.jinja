@@ -618,6 +618,9 @@ const char *
 {{ interface.qname }}_Stub::interface_introspect =
   "  <interface name=\"{{ interface.name }}\">\n"
 {% for method in interface.methods %}
+{% if method.condition != '' %}
+#if {{ method.condition }}
+{% endif %}
   "    <method name=\"{{ method.qname }}\">\n"
   {% for p in method.params %}
     {% if p.direction == 'in' or p.direction == 'out' %}
@@ -625,6 +628,9 @@ const char *
     {% endif %}
   {% endfor %}
   "    </method>\n"
+{% if method.condition != '' %}
+#endif // {{ method.condition }}
+{% endif %}
 {% endfor %}
   {% for signal in interface.signals %}
   "    <signal name=\"{{ signal.qname }}\">\n"
