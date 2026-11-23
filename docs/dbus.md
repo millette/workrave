@@ -340,6 +340,65 @@ for signal in ("MicrobreakChanged", "RestbreakChanged", "DailylimitChanged"):
 GLib.MainLoop().run()
 ```
 
+## Known issues
+
+These inconsistencies were found by comparing the interface definitions, both
+core implementations, and the D-Bus clients in this repository. None of them
+is fixed in 1.11.5.
+
+### In the interface
+
+- **`GetString` reply order.** `GetString` replies `(found, value)`; `GetInt`,
+  `GetBool` and `GetDouble` reply `(value, found)`
+  (`libs/core/src/workrave-service.xml`, `libs/corenext/src/workrave-service.xml`).
+- **No `GetInt64`.** The Qt build has `SetInt64` but no matching getter, so a
+  64-bit value can be written but not read back. The GTK build has neither
+  (`libs/corenext/src/workrave-service.xml:123`).
+- **Only the regular operation mode is visible.** `GetOperationMode` and
+  `OperationModeChanged` report the mode the user chose, not the mode in
+  effect. Temporary overrides, such as suspending during power-save, are not
+  signalled, and no method returns the active mode
+  (`libs/core/src/Core.cc:526`, `libs/corenext/src/CoreModes.cc:148`).
+- **`GetTime` is 32-bit.** It returns seconds since the Unix epoch as `i`
+  (`int32`), which overflows in January 2038
+  (`libs/core/src/workrave-service.xml:73`).
+- **`Command` and menu items disagree on type.** `GetMenu` reports each
+  item's command number as `u` (`uint32`), but `Command` takes `i`
+  (`int32`) (`ui/app/workrave-gui.xml:31`, `ui/app/workrave-gui.xml:65`).
+- **`ReportActivity` does nothing in the Qt build.** The method is exported but
+  its body is a `TODO` (`libs/corenext/src/Core.cc:329`).
+- **Applet name watches can leak.** `Embed` only unwatches bus names that have
+  already appeared. A name that was watched but never appeared keeps its watch,
+  and embedding again with the same name starts a second one
+  (`ui/app/GenericDBusApplet.cc:147`).
+
+### In clients shipped with Workrave
+
+- **Cinnamon applet un-embeds with an invalid bus name.** It embeds as
+  `org.workrave.CinnamonApplet` but un-embeds with `'CinnamonApplet'`, which
+  is not a valid bus name. Workrave tries to watch it and GLib rejects the
+  watch with a critical warning (`ui/applets/cinnamon/src/applet.js:240`).
+- **GNOME Shell 45+ ignores the prelude "move out" stage.** Workrave sends
+  `SetStage("move_out")`, but the extension checks for `"move-out"`
+  (`libs/core/include/core/IApp.hh:79`,
+  `ui/applets/gnome-shell-45/src/prelude_window.js:164`).
+- **Applets declare GTK-only members.** The Cinnamon and GNOME Shell applets
+  declare the GTK build's `CoreInterface`, including 14 members the Qt build
+  does not have. They only call members that exist in both builds, so this
+  does not break them, but the declarations are misleading.
+- **`waybar` script uses hyphenated keys.** `workrave_break_info.py` reads
+  `breaks/micro-pause/enabled`. The GSettings backend turns `_` into `-`, so
+  this works with it, but the INI and XML backends do not, and the read
+  returns "not found"
+  (`contrib/waybar-yambar-poss-other-applets/workrave_break_info.py:250`).
+- **Test helper uses a missing interface.** `workrave_test_base.py` creates a
+  proxy for `org.workrave.NetworkInterface`, which no build exports
+  (`libs/core/test/workrave_test_base.py:95`).
+- **Example scripts are Python 2 and GTK-only.** `dbus-example.py` uses
+  Python 2 `print` statements. The copies in `libs/corenext/src`
+  (`dbus-example.py`, `facedetect.py`) listen for `MicrobreakChanged` and
+  friends, which the Qt build that uses `libs/corenext` does not send.
+
 ## Changing the interface
 
 Edit the XML file for the interface (see the table at the top). The build runs
