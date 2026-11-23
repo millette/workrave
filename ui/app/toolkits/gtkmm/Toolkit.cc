@@ -302,7 +302,17 @@ Toolkit::show_about()
 #if defined(WORKRAVE_GIT_VERSION)
       version += "\n(" WORKRAVE_GIT_VERSION ")";
 #endif
-      version += std::string("\n") + workrave_build_branch + " " + workrave_build_commit;
+      // Empty when the source was not a git tree, e.g. a release tarball.
+      std::string source = workrave_build_branch;
+      if (*workrave_build_commit != '\0')
+        {
+          source += source.empty() ? "" : " ";
+          source += workrave_build_commit;
+        }
+      if (!source.empty())
+        {
+          version += "\n" + source;
+        }
       about_dialog->set_version(version);
       about_dialog->set_website("https://www.workrave.org/");
       about_dialog->set_website_label("www.workrave.org");

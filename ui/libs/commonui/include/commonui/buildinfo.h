@@ -18,17 +18,19 @@
 #ifndef WORKRAVE_UI_COMMON_BUILDINFO_H
 #define WORKRAVE_UI_COMMON_BUILDINFO_H
 
-// Recorded at every build by cmake/modules/BuildInfo.cmake and defined in
-// ui/app/BuildInfo.cc, so only that file is recompiled at each build.
+// Recorded by cmake/modules/BuildInfo.cmake and defined in ui/app/BuildInfo.cc.
+// They change only when the source state does (commit, branch, uncommitted
+// changes), and then only that file is recompiled.
 
-// Build date and time with time zone, e.g. "2026-11-23 17:05:12 EST (-0500)".
+// Date and time, with time zone, of the first build of this source state,
+// e.g. "2026-11-23 17:05:12 EST (-0500)". From SOURCE_DATE_EPOCH when set.
 extern const char *const workrave_build_datetime;
 
-// Git branch, e.g. "rym", or "detached HEAD".
+// Git branch, e.g. "rym", or "detached HEAD". Empty outside a git tree.
 extern const char *const workrave_build_branch;
 
 // Abbreviated git commit, followed by " (modified)" when the source tree had
-// uncommitted changes to tracked files.
+// uncommitted changes to tracked files. Empty outside a git tree.
 extern const char *const workrave_build_commit;
 
 #endif // WORKRAVE_UI_COMMON_BUILDINFO_H

@@ -163,8 +163,10 @@ target_link_libraries(workrave
   workrave-libs-utils
   workrave-libs-ui-prefwidgets)
 
-# Build date, branch and commit for the About dialog. Recorded at every build,
-# not at configure time; only BuildInfo.cc is recompiled.
+# Build date, branch and commit for the About dialog. Checked at every build,
+# not at configure time, so a new commit is picked up; BuildInfoData.h is only
+# rewritten when the source state changed, and then only BuildInfo.cc is
+# recompiled. A build that changes nothing relinks nothing.
 add_custom_target(workrave-build-info
   COMMAND ${CMAKE_COMMAND}
           -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
@@ -316,8 +318,12 @@ endif()
 
 if (HAVE_TESTS AND UNIX)
   add_test(NAME workrave-build-info-test
-           COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test/build-info-test.sh $<TARGET_FILE:workrave> ${CMAKE_SOURCE_DIR})
-  # 77: git or strings is not installed, or the source is not a git tree.
+           COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test/build-info-test.sh
+                   ${CMAKE_COMMAND}
+                   ${CMAKE_SOURCE_DIR}/cmake/modules/BuildInfo.cmake
+                   $<TARGET_FILE:workrave>
+                   ${CMAKE_CURRENT_BINARY_DIR}/BuildInfoData.h)
+  # 77: git is not installed.
   set_tests_properties(workrave-build-info-test PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 60)
 endif()
 
