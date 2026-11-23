@@ -313,11 +313,58 @@ build fails in `libs/utils/src/Platform-unix.cc`, which still uses Qt 5-only
 API (`QApplication::desktop()`, `QDesktopWidget`, `QPlatformNativeInterface`).
 `main` has reworked that file. The fix itself could not be checked on Qt.
 
+### Later the same afternoon
+
+**`SetOperationMode` hidden (commit `cea56df29`).** `gio-cc.jinja` and
+`qt-cc.jinja` now wrap a conditional method in the same `#if` in the
+introspection string as in its stub. `SetOperationMode` is no longer
+advertised, and GDBus itself now rejects a call with `UnknownMethod`. The
+regression test asserts it is absent (it failed before the change, passes
+after).
+
+**Qt build: stopped after three attempts.** Branch `rym-qt-build`
+(`f87dff068`, not merged) ports `main`'s Qt 6 changes to `Platform-unix.cc`,
+with `Qt::GuiPrivate` (a separate CMake component only from Qt 6.9). The
+build then fails on two more defects that predate the fix: `WaylandInputMonitor`
+includes GDK headers (`main` adds a separate `QtWaylandInputMonitor`; worked
+around with `-DWITH_WAYLAND=OFF`), and `ui/app/toolkits/qt/ToolkitUnix.hh`
+includes `UnixLocker.hh`, which on `rym` exists only for gtkmm. The Linux Qt
+build on `rym` needs a larger port of `main`'s Qt work; the fix is unchecked
+on Qt.
+
+**Real session (i3, X11), 13:13–13:17.** The packaged Workrave was quit with
+`AppletInterface.MenuAction workrave.quit`, the patched build started from
+`prefix/` with the real settings, then quit with `ControlInterface.Quit`, and
+the packaged one restarted. Operation and usage modes were `normal` before
+and after.
+
+| Check | Result |
+| --- | --- |
+| `ControlInterface` in introspection, no `SetOperationMode` | yes |
+| `Statistics` | window opened with the real history |
+| `ReadingMode true` / `false` | usage mode `reading`, then `normal` |
+| `SetOperationMode` | `UnknownMethod` |
+| `AppletInterface.GetMenu` | 33 actions |
+| `Quit` | process exits |
+| Warnings in the log | none |
+| Tray icon in `i3bar` | missing at first, see below; present after the build fix |
+
+`RestBreak` was not called on the real desktop, because it would take over
+the screen; it was checked in the isolated harness.
+
+**Tray icon: separate build bug (commit `d831feded`).** The first patched run
+had no tray icon. The binary contained no `StatusIcon` code: CMake only set
+`HAVE_STATUSICON` when dbusmenu was found and AppIndicator was not, and
+`libdbusmenu-gtk3-dev` is not installed here. The fix falls back to the
+status icon whenever AppIndicator is not used. A second run then showed the
+icon in `i3bar`.
+
 **Still not done:**
 
-- Not installed system-wide, not tested on the real desktop or with a real
-  panel applet
+- Not packaged or installed system-wide: `/usr/bin/workrave` is still the
+  unpatched `1.11.5-0local1`
 - Qt build not tested (see above)
+- No GNOME/Cinnamon/MATE panel applet test: this machine runs i3
 - Release notes not written
 - `clang-format` still not installed, so formatting still unchecked
 
