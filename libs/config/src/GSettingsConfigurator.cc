@@ -62,6 +62,10 @@ GSettingsConfigurator::remove_key(const std::string &key)
 {
   std::string subkey;
   GSettings *child = get_settings(key, subkey);
+  if (child == nullptr)
+    {
+      return;
+    }
   g_settings_reset(child, subkey.c_str());
 }
 
@@ -70,6 +74,10 @@ GSettingsConfigurator::has_user_value(const std::string &key)
 {
   std::string subkey;
   GSettings *child = get_settings(key, subkey);
+  if (child == nullptr)
+    {
+      return false;
+    }
   GVariant *value = g_settings_get_user_value(child, subkey.c_str());
   if (value != nullptr)
     {
@@ -194,10 +202,12 @@ GSettingsConfigurator::set_value(const std::string &key, const ConfigValue &valu
           rc = g_settings_set_string(child, subkey.c_str(), value.c_str());
         }
 
-      if (!rc)
-        {
-          throw std::runtime_error("cannot set key");
-        }
+      // A value of the wrong type, or a key that is not writable, is refused
+      // by GLib, which says so itself. Nothing catches an exception thrown
+      // here, so throwing would end the process, and the value can come from
+      // outside, over D-Bus: the key simply keeps its value, as it does with
+      // the other backends.
+      (void)rc;
     },
     value);
 }
@@ -308,6 +318,22 @@ GSettingsConfigurator::get_settings(const std::string &key, std::string &subkey)
   if (i == settings.end())
     {
       TRACE_MSG("NULL");
+      return nullptr;
+    }
+
+  // GLib treats a key that the schema does not have as a programming error
+  // and aborts the process. A key can come from outside, over D-Bus, so an
+  // unknown one must be reported as absent instead.
+  GSettingsSchema *settings_schema = nullptr;
+  g_object_get(i->second, "settings-schema", &settings_schema, nullptr);
+  const bool known = settings_schema != nullptr && g_settings_schema_has_key(settings_schema, subkey.c_str()) == TRUE;
+  if (settings_schema != nullptr)
+    {
+      g_settings_schema_unref(settings_schema);
+    }
+  if (!known)
+    {
+      TRACE_MSG("no such key");
       return nullptr;
     }
 

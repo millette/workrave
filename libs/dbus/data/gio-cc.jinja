@@ -398,6 +398,8 @@ void
       = {{ p.bind }}
 {% elif p.direction == 'sender' %}
       = sender
+{% else %}
+      {}
 {% endif %}
       ;
 {% endfor %}

@@ -314,6 +314,9 @@ if (HAVE_TESTS AND HAVE_DBUS AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
            COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test/control-interface-test.sh $<TARGET_FILE:workrave>)
   # 77: dbus-run-session, xvfb-run or gdbus is not installed.
   set_tests_properties(workrave-control-interface-test PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 120)
+  add_test(NAME workrave-config-interface-test
+           COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test/config-interface-test.sh $<TARGET_FILE:workrave>)
+  set_tests_properties(workrave-config-interface-test PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 120)
 endif()
 
 if (HAVE_TESTS AND UNIX)
