@@ -407,7 +407,7 @@ session bus): assert that `/org/workrave/Workrave/UI` exposes
 
 ## Effect on this project
 
-None of the stages in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)
+None of the stages the productivity-integration project was built in
 depends on the fix: they use `AppletInterface.MenuAction`. Once the fix is
 installed and running, `ControlInterface.RestBreak` becomes a second route
 that does not depend on the D-Bus applet being active, and `src/workrave.ts`
